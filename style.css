@@ -1,0 +1,126 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.header {
+    margin-bottom: 30px;
+}
+
+h1 {
+    font-size: 32px;
+    color: #4a4a4a;
+    margin: 0;
+}
+
+.description {
+    font-size: 18px;
+    color: #6c6c6c;
+    margin: 10px 0 30px;
+}
+
+.form-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    width: 70%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #5a67d8;
+    box-shadow: 0 0 5px rgba(90, 103, 216, 0.5);
+}
+
+.btn {
+    background-color: #5a67d8;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #434190;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(90, 103, 216, 0.5);
+}
+
+.message {
+    margin-top: 20px;
+    font-size: 16px;
+    color: red;
+}
+
+.terms {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #777;
+}
+
+.terms a {
+    color: #5a67d8;
+    text-decoration: none;
+}
+
+.terms a:hover {
+    text-decoration: underline;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .description {
+        font-size: 16px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .form-group {
+        flex-direction: column;
+        gap: 0;
+    }
+}

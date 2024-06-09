@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videos snap downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #000428, #004e92);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 120vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            color: #ffffff;
+        }
+        .container, .guide {
+            background: rgba(30, 30, 30, 0.9);
+            padding: 2em;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 1em;
+            box-sizing: border-box;
+        }
+        .header {
+            margin-bottom: 1.8em;
+        }
+        .header h1 {
+            margin: 0;
+            color: #6e44ff;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .description {
+            margin: 0em 0;
+            color: #6e44ff;
+            font-size: 1.2em;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5em;
+            width: 100%;
+        }
+        #url {
+            width: 100%;
+            padding: 0.8em;
+            margin-bottom: 0.5em;
+            border: none;
+            border-radius: 30px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .btn, .cancel-btn {
+            background: #6e44ff;
+            color: white;
+            border: none;
+            padding: 0.75em 1.5em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1em;
+            margin-bottom: 0.5em;
+            box-sizing: border-box;
+            margin-right: 0.5em;
+        }
+        .btn:hover, .cancel-btn:hover {
+            background: #5631d0;
+        }
+        .btn:disabled, .cancel-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin: 1em 0;
+            color: #d9534f;
+            font-size: 1em;
+        }
+        .terms {
+            margin-top: 1em;
+            font-size: 0.9em;
+            color: #bbb;
+        }
+        .terms a {
+            color: #6e44ff;
+            text-decoration: none;
+        }
+        .terms a:hover {
+            text-decoration: underline;
+        }
+        .progress-container {
+            margin-top: 1em;
+            width: 100%;
+        }
+        .progress-bar {
+            display: none;
+            width: 100%;
+            background: #333;
+            border-radius: 30px;
+            margin-top: 0.5em;
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 15px;
+            background: #6e44ff;
+            width: 0;
+            border-radius: 30px;
+            transition: width 0.5s;
+        }
+        .progress-info {
+            display: none;
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: 0;
+            left: 0;
+            height: 100%;
+            line-height: 15px;
+            color: white;
+            font-size: 1em;
+        }
+        .sites {
+            margin-top: 1.5em;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .site {
+            background: #333;
+            padding: 1em;
+            border-radius: 10px;
+            text-align: center;
+            margin: 0.5em;
+            flex: 1;
+            max-width: 100px;
+        }
+        .site img {
+            width: 40px;
+            height: 40px;
+        }
+        .site p {
+            margin: 0.5em 0 0;
+            font-size: 1em;
+            color: #ccc;
+        }
+        .guide h2 {
+            color: #6e44ff;
+            font-size: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .guide ol {
+            padding-left: 1em;
+            font-size: 1em;
+            text-align: left;
+            color: #ccc;
+        }
+        .guide li {
+            margin-bottom: 0.5em;
+            color: #ccc;
+        }
+        .guide ul {
+            padding-left: 1em;
+            font-size: 1em;
+            text-align: left;
+            color: #ccc;
+        }
+        .guide ul li {
+            margin-bottom: 0.5em;
+            color: #bbb;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .description {
+                font-size: 1em;
+            }
+            .form-group {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            #url {
+                width: 100%;
+                margin-bottom: 0.5em;
+            }
+            .btn, .cancel-btn {
+                width: 100%;
+                margin-bottom: -1em;
+            }
+            .guide h2 {
+                font-size: 1.0em;
+            }
+            .guide ol, .guide ul {
+                font-size: 0.1em;
+            }
+            .site {
+                flex: 1 1 45%;
+                margin: 1em 1;
+                max-width: 100%;
+            }
+            .site img {
+                width: 35px;
+                height: 35px;
+            }
+            .site p {
+                font-size: 0em;
+            }
+        }
+    </style>
+    <script>
+        let controller;
+        let startTime;
+    
+        function updateProgress() {
+            fetch('/progress')
+                .then(response => response.json())
+                .then(data => {
+                    const currentTime = new Date();
+                    const elapsedTime = (currentTime - startTime) / 1000;
+                    const progressStr = data.progress.replace('%', '').replace(/\x1b\[[0-9;]*m/g, '');
+                    const progress = parseFloat(progressStr);
+    
+                    if (!isNaN(progress) && progress > 0) {
+                        const estimatedTotalTime = (elapsedTime / progress) * 100;
+                        const remainingTime = estimatedTotalTime - elapsedTime;
+    
+                        document.querySelector('#progress-bar-fill').style.width = `${progress}%`;
+                        document.querySelector('#progress-info').innerText = `${progress}% (${Math.round(remainingTime)}s restantes)`;
+                    } else {
+                        document.querySelector('#progress-info').innerText = `${data.progress.replace(/\x1b\[[0-9;]*m/g, '')} (Calculando...)`;
+                    }
+    
+                    if (progress !== 100) {
+                        setTimeout(updateProgress, 1000);
+                    } else {
+                        document.querySelector('#btn').disabled = false;
+                        document.querySelector('#cancel-btn').style.display = 'none';
+                    }
+                });
+        }
+    
+        function cancelDownload() {
+            fetch('/cancel', {
+                method: 'POST',
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'cancelado') {
+                      document.querySelector('#btn').disabled = false;
+                      document.querySelector('#cancel-btn').style.display = 'none';
+                      document.querySelector('#progress-bar').style.display = 'none';
+                      document.querySelector('#progress-info').style.display = 'none';
+                  }
+              }).catch(error => {
+                  console.error('Error:', error);
+              });
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('downloadForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                startTime = new Date();
+                controller = new AbortController();
+                document.querySelector('#btn').disabled = true;
+                document.querySelector('#cancel-btn').style.display = 'inline-block';
+                document.querySelector('#progress-bar').style.display = 'block';
+                document.querySelector('#progress-info').style.display = 'block';
+                updateProgress();
+    
+                const formData = new FormData(this);
+                fetch('/', {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                }).then(response => response.blob())
+                  .then(blob => {
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.style.display = 'none';
+                      a.href = url;
+                      a.download = 'video.mp4';
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                  }).catch(error => {
+                      if (error.name === 'AbortError') {
+                          console.log('Download cancelado');
+                      } else {
+                          console.error('Error:', error);
+                      }
+                  }).finally(() => {
+                      document.querySelector('#btn').disabled = false;
+                      document.querySelector('#cancel-btn').style.display = 'none';
+                      document.querySelector('#progress-bar').style.display = 'none';
+                      document.querySelector('#progress-info').style.display = 'none';
+                  });
+            });
+    
+            document.getElementById('cancel-btn').addEventListener('click', cancelDownload);
+        });
+    </script>        
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Download de Vídeos</h1>
+            <p class="description">Baixe qualquer vídeo público!</p>
+        </div>
+        <div class="progress-container">
+            <form method="POST" action="/" id="downloadForm">
+                <div class="form-group">
+                    <input type="text" id="url" name="url" placeholder="Cole aqui o URL do vídeo" required>
+                    <div style="display: flex; width: 100%; justify-content: center;">
+                        <button type="submit" class="btn" id="btn">Download</button>
+                        <button type="button" id="cancel-btn" class="cancel-btn" style="display:none;">Cancelar</button>
+                    </div>
+                </div>
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                    <div class="progress-info" id="progress-info">0% (Calculando...)</div>
+                </div>
+            </form>
+        </div>
+        {% if message %}
+        <p class="message">{{ message }}</p>
+        {% endif %}
+        <div class="sites">
+            <div class="site">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Facebook_f_logo_%282019%29.svg/1200px-Facebook_f_logo_%282019%29.svg.png" alt="Facebook">
+                <p>facebook.com</p>
+            </div>
+            <div class="site">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+                <p>instagram.com</p>
+            </div>
+            <div class="site">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube">
+                <p>youtube.com</p>
+            </div>
+            <div class="site">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRboErFZQ_oHCfhO7ISjsIPUG0JX10nYDlxIA&s" alt="X">
+                <p>twitter.com</p>
+            </div>
+        </div>
+        <p class="terms">Ao baixar este vídeo, você concorda com nossas <a href="#">Diretrizes de Uso</a>.</p>
+    </div>
+
+    <div class="guide">
+        <h2>Como fazer o download de vídeos</h2>
+        <ol>
+            <li><strong>Copie o URL:</strong> Acesse o site compatível (Facebook, Instagram, YouTube, Twitter) e copie o URL do vídeo que você deseja baixar.</li>
+            <li><strong>Cole o URL:</strong> Volte para esta página e cole o URL copiado na caixa de entrada do formulário acima.</li>
+            <li><strong>Inicie o download:</strong> Clique no botão <em>"Download"</em> para começar o processo de download.</li>
+            <li><strong>Aguarde o processamento:</strong> Espere enquanto o vídeo é processado. O progresso será exibido na barra de progresso.</li>
+            <li><strong>Download concluído:</strong> Quando o download estiver concluído, o arquivo de vídeo será automaticamente salvo no seu dispositivo.</li>
+        </ol>
+        <p><strong>Dicas adicionais:</strong></p>
+        <ul>
+            <li>Certifique-se de que o URL está correto e acessível publicamente.</li>
+            <li>Verifique se você tem espaço suficiente no seu dispositivo para salvar o vídeo.</li>
+            <li>Se encontrar algum problema, recarregue a página e tente novamente.</li>
+        </ul>
+    </div>
+</body>
+</html>
